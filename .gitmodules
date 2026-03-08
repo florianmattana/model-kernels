@@ -1,3 +1,0 @@
-[submodule "attention-int8"]
-	path = attention-int8
-	url = https://github.com/ParagEkbote/model-kernels
