@@ -53,7 +53,7 @@ std::vector<int64_t> get_supported_head_dims() {
 // Validation
 // ============================================================================
 
-static void validate_tensor(
+void validate_tensor(
     const torch::Tensor& t,
     const char* name,
     torch::ScalarType dtype)
@@ -68,7 +68,7 @@ static void validate_tensor(
         name, " must be contiguous");
 }
 
-static void validate_shapes(
+void validate_shapes(
     const torch::Tensor& Q,
     const torch::Tensor& K,
     const torch::Tensor& V)
@@ -87,7 +87,7 @@ static void validate_shapes(
         "Head dimension mismatch: Q=", Q.size(3), ", K=", K.size(3), ", V=", V.size(3));
 }
 
-static void validate_head_dim(int64_t D)
+void validate_head_dim(int64_t D)
 {
     TORCH_CHECK(D % 16 == 0,
         "HEAD_DIM must be multiple of 16, got ", D);
@@ -97,7 +97,7 @@ static void validate_head_dim(int64_t D)
         ". Supported: 32, 64, 80, 96, 128, 160, 256");
 }
 
-static void validate_kv_constraint(
+void validate_kv_constraint(
     int64_t H,
     int64_t kv_H)
 {
@@ -107,7 +107,7 @@ static void validate_kv_constraint(
         "H must be divisible by kv_H (H=", H, ", kv_H=", kv_H, ")");
 }
 
-static void validate_timestep_scales(
+void validate_timestep_scales(
     const c10::optional<torch::Tensor>& ts,
     int64_t timestep,
     int64_t batch_size)
@@ -141,7 +141,7 @@ static void validate_timestep_scales(
 // CUDA Implementation
 // ============================================================================
 
-static torch::Tensor int8_attention_cuda(
+torch::Tensor int8_attention_cuda(
     torch::Tensor Q,
     torch::Tensor K,
     torch::Tensor V,
@@ -263,10 +263,6 @@ torch::Tensor int8_attention_forward(
     return O;
 }
 
-// ============================================================================
-// Operator Registration
-// ============================================================================
-
 TORCH_LIBRARY(int8_attn, m) {
     m.def(
         "int8_attention_forward("
@@ -278,33 +274,5 @@ TORCH_LIBRARY(int8_attn, m) {
         "bool causal=False"
         ") -> Tensor"
     );
-}
-
-TORCH_LIBRARY_IMPL(int8_attn, CUDA, m) {
-    m.impl(
-        "int8_attention_forward",
-        &int8_attention_forward
-    );
-}
-
-// CPU stub implementation (required for proper registration)
-TORCH_LIBRARY_IMPL(int8_attn, CPU, m) {
-    m.impl("int8_attention_forward",
-        [](torch::Tensor Q, torch::Tensor K, torch::Tensor V,
-           c10::optional<torch::Tensor> ts, int64_t timestep, bool causal) {
-            TORCH_CHECK(false,
-                "int8_attention_forward is only supported on CUDA devices. "
-                "Got CPU tensor instead. Please move your tensors to GPU.");
-        }
-    );
-}
-
-// Meta implementation for symbolic shapes (useful for compilation)
-TORCH_LIBRARY_IMPL(int8_attn, Meta, m) {
-    m.impl("int8_attention_forward",
-        [](torch::Tensor Q, torch::Tensor K, torch::Tensor V,
-           c10::optional<torch::Tensor> ts, int64_t timestep, bool causal) {
-            return torch::empty_like(Q);
-        }
-    );
+    m.impl("int8_attention_forward", torch::kCUDA, &int8_attention_forward);
 }

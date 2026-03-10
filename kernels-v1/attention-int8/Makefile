@@ -6,7 +6,7 @@ CORES := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 8)
 NIX_FLAGS = --extra-experimental-features "nix-command flakes"
 
 # Load nix environment
-NIX_ENV = . /home/codespace/.nix-profile/etc/profile.d/nix.sh
+NIX_ENV = . /home/florian/.nix-profile/etc/profile.d/nix.sh
 
 all: nix cachix build
 
