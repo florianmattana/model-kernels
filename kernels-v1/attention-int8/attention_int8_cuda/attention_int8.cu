@@ -348,13 +348,13 @@ inline size_t int8_attention_smem_bytes(int D) {
 // ============================================================================
 // Launcher [G4][G7]
 // ============================================================================
-inline cudaError_t launch_int8_attention(
+cudaError_t launch_int8_attention(
     const float16* Q,
     const float16* K,
     const float16* V,
     float16*       O,
     const float*   timestep_scales,
-    int64_t  timestep,
+    int  timestep,
     int  B, int H, int kv_H, int N, int D,
     bool causal,
     cudaStream_t stream = 0)
