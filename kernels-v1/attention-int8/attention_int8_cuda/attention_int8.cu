@@ -63,7 +63,7 @@ __device__ __forceinline__ float block_reduce_max(float val, float* smem_scratch
 // Quantization helper [F4]
 // ============================================================================
 __device__ __forceinline__ int8_t quantize_f32(float v, float inv_scale) {
-    return (int8_t)fmaxf(-128.f, fminf(127.f, roundf(v * inv_scale)));
+    return (int8_t)fmaxf(-127.f, fminf(127.f, roundf(v * inv_scale)));
 }
 
 // ============================================================================
