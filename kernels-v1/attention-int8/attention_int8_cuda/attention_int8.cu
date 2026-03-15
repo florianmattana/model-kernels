@@ -174,7 +174,7 @@ int8_attention_kernel(
     for (int i = tid; i < q_size * HEAD_DIM; i += THREADS)
         lqmax = fmaxf(lqmax, fabsf(__half2float(Q_head[q_start * HEAD_DIM + i])));
     float abs_max_Q   = block_reduce_max(lqmax, warp_scr);
-    const float inv_Q = 127.f / fmaxf(abs_max_Q * ts, 1e-6f);
+    const float inv_Q = 127.f / fmaxf(abs_max_Q, 1e-6f);
     const float scl_Q = 1.f / inv_Q;
 
     // Quantize Q tile
