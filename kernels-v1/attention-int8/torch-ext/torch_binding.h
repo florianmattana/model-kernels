@@ -78,45 +78,45 @@ void validate_timestep_scales(
 
 /**
  * @brief INT8 attention forward pass (main entry point)
- * 
+ *
  * Computes scaled dot-product attention with INT8 quantization:
  *   Attention(Q, K, V) = softmax(Q·K^T / sqrt(D) * scale) · V
- * 
+ *
  * Per-head INT8 quantization with optional timestep-aware scaling:
  *   inv_scale = 127 / (abs_max * timestep_scale)
- * 
+ *
  * Supports:
  * - Grouped Query Attention (kv_H < H): shares K/V heads across query groups
  * - Multi-Query Attention (kv_H = 1): single K/V head for all queries
  * - Causal masking: masks future positions (autoregressive generation)
  * - Online softmax: numerically stable, streaming computation
- * 
+ *
  * @param Q Query tensor [B, H, N, D] (float16)
  *          B = batch size
  *          H = number of query heads
  *          N = sequence length
  *          D = head dimension {32, 64, 80, 96, 128, 160, 256}
- * 
+ *
  * @param K Key tensor [B, kv_H, N, D] (float16)
  *          kv_H = number of key/value heads (kv_H <= H)
- * 
+ *
  * @param V Value tensor [B, kv_H, N, D] (float16)
- * 
+ *
  * @param timestep_scales Optional per-timestep scales [num_timesteps] (float32)
  *        If provided, scales[timestep] multiplies the quantization range
  *        for diffusion-aware quantization.
  *        If not provided, all timesteps use scale = 1.0
- * 
+ *
  * @param timestep Index into timestep_scales (ignored if scales not provided)
  *                 Must be 0 <= timestep < len(timestep_scales)
- * 
+ *
  * @param causal If true, apply causal masking: attend only to current and
  *               past positions (masks positions j > i where i is query index)
  *               Useful for autoregressive/language model generation.
  *               Default: false
- * 
+ *
  * @return Output tensor [B, H, N, D] (float16)
- * 
+ *
  * @throws std::runtime_error if:
  *   - Tensors not on same device (CUDA)
  *   - Tensors have mismatched dtypes
@@ -125,20 +125,20 @@ void validate_timestep_scales(
  *   - kv_H constraint violated (0 < kv_H <= H)
  *   - HEAD_DIM not in supported list
  *   - CUDA kernel launch fails
- * 
+ *
  * @example
  * ```cpp
  * torch::Tensor Q = torch::randn({2, 8, 1024, 64}, torch::kHalf).cuda();
  * torch::Tensor K = torch::randn({2, 2, 1024, 64}, torch::kHalf).cuda();
  * torch::Tensor V = torch::randn({2, 2, 1024, 64}, torch::kHalf).cuda();
- * 
+ *
  * // Standard attention
  * auto O = int8_attention_forward(Q, K, V);
- * 
+ *
  * // With timestep scaling (diffusion)
  * auto scales = torch::linspace(0.5, 2.0, 1000, torch::kFloat).cuda();
  * auto O_t = int8_attention_forward(Q, K, V, scales, 500);
- * 
+ *
  * // Causal (autoregressive)
  * auto O_causal = int8_attention_forward(Q, K, V, {}, 0, true);
  * ```
@@ -153,9 +153,9 @@ torch::Tensor int8_attention_forward(
 
 /**
  * @brief INT8 attention backward pass (future extension)
- * 
+ *
  * Currently not implemented. For use when gradient computation needed.
- * 
+ *
  * @param grad_O Gradient of output [B, H, N, D]
  * @param Q Query tensor [B, H, N, D]
  * @param K Key tensor [B, kv_H, N, D]
@@ -164,9 +164,9 @@ torch::Tensor int8_attention_forward(
  * @param timestep_scales Optional timestep scales
  * @param timestep Current timestep
  * @param causal Causal masking flag
- * 
+ *
  * @return Tuple of (grad_Q, grad_K, grad_V)
- * 
+ *
  * @note Currently unimplemented. Returns error if called.
  */
 std::tuple<torch::Tensor, torch::Tensor, torch::Tensor>
@@ -186,13 +186,13 @@ int8_attention_backward(
 
 /**
  * @brief Get maximum shared memory requirement for given HEAD_DIM
- * 
+ *
  * Returns approximate shared memory in bytes needed for INT8 attention kernel
  * with given head dimension.
- * 
+ *
  * @param D Head dimension
  * @return Size in bytes; returns 0 if D not supported
- * 
+ *
  * @example
  * ```cpp
  * auto smem = get_int8_attention_smem_bytes(64);  // Returns ~47000
@@ -202,7 +202,7 @@ int64_t get_int8_attention_smem_bytes(int64_t D);
 
 /**
  * @brief Check if HEAD_DIM is supported by kernel
- * 
+ *
  * @param D Head dimension
  * @return true if D in {32, 64, 80, 96, 128, 160, 256}
  */
@@ -210,7 +210,7 @@ bool is_head_dim_supported(int64_t D);
 
 /**
  * @brief Get list of supported HEAD_DIM values
- * 
+ *
  * @return Vector of supported dimensions
  */
 std::vector<int64_t> get_supported_head_dims();

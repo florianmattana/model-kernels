@@ -171,7 +171,7 @@ int8_attention_kernel(
     const float ts = timestep_scales ? timestep_scales[timestep] : 1.f;
 
     float lqmax = 0.f;
-    for (int i = tid; i < q_size * HEAD_DIM; i += THREADS) 
+    for (int i = tid; i < q_size * HEAD_DIM; i += THREADS)
     {
     int qi = i / HEAD_DIM;
     int di = i % HEAD_DIM;

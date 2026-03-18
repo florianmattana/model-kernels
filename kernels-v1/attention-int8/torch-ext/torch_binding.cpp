@@ -93,7 +93,7 @@ void validate_head_dim(int64_t D)
         "HEAD_DIM must be multiple of 16, got ", D);
 
     TORCH_CHECK(is_head_dim_supported(D),
-        "Unsupported HEAD_DIM=", D, 
+        "Unsupported HEAD_DIM=", D,
         ". Supported: 32, 64, 80, 96, 128, 160, 256");
 }
 
@@ -130,7 +130,7 @@ void validate_timestep_scales(
         "timestep_scales must be 1D, got shape ", t.sizes());
 
     TORCH_CHECK(t.size(0) == batch_size,
-        "timestep_scales batch size mismatch: expected ", batch_size, 
+        "timestep_scales batch size mismatch: expected ", batch_size,
         ", got ", t.size(0));
 
     TORCH_CHECK(timestep >= 0,
